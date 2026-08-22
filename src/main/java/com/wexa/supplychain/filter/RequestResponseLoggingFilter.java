@@ -49,7 +49,7 @@ public class RequestResponseLoggingFilter extends OncePerRequestFilter {
             long duration = System.currentTimeMillis() - startTime;
 
             logRequest(requestWrapper);
-            logResponse(responseWrapper, duration);
+            logResponse(requestWrapper,responseWrapper, duration);
 
             // CRITICAL: Ensure response is passed back to client
             responseWrapper.copyBodyToResponse();
@@ -89,7 +89,7 @@ public class RequestResponseLoggingFilter extends OncePerRequestFilter {
         log.info("Request Body    : {}", LogJson.of(bodyToLog));
     }
 
-    private void logResponse(ContentCachingResponseWrapper response, long duration) {
+    private void logResponse(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response, long duration) {
         String contentType = response.getContentType();
 
         // 1. Extract Body
@@ -115,9 +115,13 @@ public class RequestResponseLoggingFilter extends OncePerRequestFilter {
         if (bodyJsonStr != null && bodyJsonStr.length() > 2000) {
             bodyToLog = bodyJsonStr.substring(0, 2000) + "... [TRUNCATED]";
         }
-
+        
+        String queryString = request.getQueryString() != null ? "?" + request.getQueryString() : "";
+        
         // 2. Build consolidated response metadata + headers + body Map
         Map<String, Object> responseDetails = new HashMap<>();
+        responseDetails.put("method", request.getMethod());
+        responseDetails.put("uri", request.getRequestURI() + queryString);
         responseDetails.put("status", response.getStatus());
         responseDetails.put("durationMs", duration);
         responseDetails.put("headers", getResponseHeadersMap(response));
