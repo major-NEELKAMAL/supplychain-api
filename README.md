@@ -50,9 +50,6 @@ MERGE (c1)-[:USED_IN]->(p2)
 ### Environment Variables
 Ensure the following variables are set before running the application:
 
-export NEO4J_URI=bolt+s://<your-instance-id>.databases.cognodb.cloud
-export NEO4J_USER=cognodb
-export NEO4J_PASSWORD=<your-cognodb-password>
 export JASYPT_PASSWORD=<your-jasypt-encryption-key>
 
 ### Run Locally
