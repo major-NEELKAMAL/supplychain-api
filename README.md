@@ -95,3 +95,6 @@ mvn clean package
 java -Djasypt.encryptor.password=cognodb -jar target/*.jar
 
 Service runs locally on http://localhost:8081.
+
+### Extra 
+To generate Supply chain graph default data csv file (present in resource directory) use cognodb.py file provided in root directory
