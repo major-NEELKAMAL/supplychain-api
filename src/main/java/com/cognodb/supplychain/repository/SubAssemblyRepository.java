@@ -44,7 +44,6 @@ public interface SubAssemblyRepository extends Repository<SubAssemblyNode, Strin
 			""")
 	Optional<SubAssemblyNode> findSubAssemblyById(@Param("id") String id);
 
-
 	@Query("""
 			MATCH (sa:SubAssembly)
 			WHERE toLower(sa.name) = toLower($keyword)
@@ -91,72 +90,68 @@ public interface SubAssemblyRepository extends Repository<SubAssemblyNode, Strin
 	List<SubAssemblyNode> createAll(@Param("subAssemblies") List<Map<String, Object>> subAssemblies);
 
 	@Query("""
-		    MATCH (sub:SubAssembly {id: $subAssembly.id})
+			  MATCH (sub:SubAssembly {id: $subAssembly.id})
 
-		   SET sub.name = $subAssembly.name,
-    sub.category = $subAssembly.category,
-    sub.updatedAt = localdatetime()
+			 SET sub.name = $subAssembly.name,
+			sub.category = $subAssembly.category,
+			sub.updatedAt = localdatetime()
 
-		    WITH sub, coalesce($subAssembly.parentIds, []) AS desiredParentIds
+			  WITH sub, coalesce($subAssembly.parentIds, []) AS desiredParentIds
 
-		    // Delete obsolete Component -> SubAssembly relationships
-		    OPTIONAL MATCH (oldComponent:Component)-[oldRel:ASSEMBLED_INTO]->(sub)
-		    WHERE NOT oldComponent.id IN desiredParentIds
-		    DELETE oldRel
+			  // Delete obsolete Component -> SubAssembly relationships
+			  OPTIONAL MATCH (oldComponent:Component)-[oldRel:ASSEMBLED_INTO]->(sub)
+			  WHERE NOT oldComponent.id IN desiredParentIds
+			  DELETE oldRel
 
-		    WITH DISTINCT sub, desiredParentIds
+			  WITH DISTINCT sub, desiredParentIds
 
-		    // Find only existing Components
-		    OPTIONAL MATCH (newComponent:Component)
-		    WHERE newComponent.id IN desiredParentIds
+			  // Find only existing Components
+			  OPTIONAL MATCH (newComponent:Component)
+			  WHERE newComponent.id IN desiredParentIds
 
-		    WITH sub, collect(DISTINCT newComponent) AS desiredComponents
+			  WITH sub, collect(DISTINCT newComponent) AS desiredComponents
 
-		    // Preserve existing links and create missing links
-		    FOREACH (component IN desiredComponents |
-		        MERGE (component)-[:ASSEMBLED_INTO]->(sub)
-		    )
+			  // Preserve existing links and create missing links
+			  FOREACH (component IN desiredComponents |
+			      MERGE (component)-[:ASSEMBLED_INTO]->(sub)
+			  )
 
-		    RETURN sub
-		    """)
-		SubAssemblyNode update(
-		    @Param("subAssembly") Map<String, Object> subAssembly
-		);
-	
+			  RETURN sub
+			  """)
+	SubAssemblyNode update(@Param("subAssembly") Map<String, Object> subAssembly);
+
 	@Query("""
-		    UNWIND $subAssemblies AS sa
+			  UNWIND $subAssemblies AS sa
 
-		    MATCH (sub:SubAssembly {id: sa.id})
+			  MATCH (sub:SubAssembly {id: sa.id})
 
-		    SET sub.name = $subAssembly.name,
-    sub.category = $subAssembly.category,
-    sub.updatedAt = localdatetime()
+			  SET sub.name = $subAssembly.name,
+			sub.category = $subAssembly.category,
+			sub.updatedAt = localdatetime()
 
-		    WITH sub, coalesce(sa.parentIds, []) AS desiredParentIds
+			  WITH sub, coalesce(sa.parentIds, []) AS desiredParentIds
 
-		    // Delete obsolete Component -> SubAssembly relationships
-		    OPTIONAL MATCH (oldComponent:Component)-[oldRel:ASSEMBLED_INTO]->(sub)
-		    WHERE NOT oldComponent.id IN desiredParentIds
-		    DELETE oldRel
+			  // Delete obsolete Component -> SubAssembly relationships
+			  OPTIONAL MATCH (oldComponent:Component)-[oldRel:ASSEMBLED_INTO]->(sub)
+			  WHERE NOT oldComponent.id IN desiredParentIds
+			  DELETE oldRel
 
-		    WITH DISTINCT sub, desiredParentIds
+			  WITH DISTINCT sub, desiredParentIds
 
-		    // Find only existing Components
-		    OPTIONAL MATCH (newComponent:Component)
-		    WHERE newComponent.id IN desiredParentIds
+			  // Find only existing Components
+			  OPTIONAL MATCH (newComponent:Component)
+			  WHERE newComponent.id IN desiredParentIds
 
-		    WITH sub, collect(DISTINCT newComponent) AS desiredComponents
+			  WITH sub, collect(DISTINCT newComponent) AS desiredComponents
 
-		    // Preserve existing links and create missing links
-		    FOREACH (component IN desiredComponents |
-		        MERGE (component)-[:ASSEMBLED_INTO]->(sub)
-		    )
+			  // Preserve existing links and create missing links
+			  FOREACH (component IN desiredComponents |
+			      MERGE (component)-[:ASSEMBLED_INTO]->(sub)
+			  )
 
-		    RETURN DISTINCT sub
-		    """)
-		List<SubAssemblyNode> updateAll(
-		    @Param("subAssemblies") List<Map<String, Object>> subAssemblies
-		);
+			  RETURN DISTINCT sub
+			  """)
+	List<SubAssemblyNode> updateAll(@Param("subAssemblies") List<Map<String, Object>> subAssemblies);
 
 	@Query("""
 			MATCH (sa:SubAssembly {id: $id})
@@ -184,10 +179,12 @@ public interface SubAssemblyRepository extends Repository<SubAssemblyNode, Strin
 	long deleteAllSubAssemblies();
 
 	@Query("""
-			MATCH (sa:SubAssembly)
-			OPTIONAL MATCH (sa)<-[r:ASSEMBLED_INTO]-(c:Component)
-			RETURN sa, collect(r) AS rels, collect(c) AS components
-			ORDER BY sa.name
-			""")
-	List<SubAssemblyNode> findAllSubAssembliesWithParents();
+				MATCH (sa:SubAssembly)
+				OPTIONAL MATCH (sa)<-[r:ASSEMBLED_INTO]-(c:Component)
+				RETURN sa, collect(r) AS rels, collect(c) AS components
+				ORDER BY sa.name
+				SKIP $offset
+			LIMIT $limit
+				""")
+	List<SubAssemblyNode> findAllSubAssembliesWithParents(@Param("limit") int limit, @Param("offset") int offset);
 }

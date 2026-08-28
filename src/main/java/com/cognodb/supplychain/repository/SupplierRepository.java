@@ -128,6 +128,8 @@ public interface SupplierRepository extends Repository<SupplierNode, String> {
 			MATCH (s:Supplier)
 			RETURN s
 			ORDER BY s.name
+			SKIP $offset
+			   LIMIT $limit
 			""")
-	List<SupplierNode> findAllSuppliersWithParents();
+	List<SupplierNode> findAllSuppliersWithParents(@Param("limit") int limit, @Param("offset") int offset);
 }

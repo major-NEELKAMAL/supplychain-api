@@ -66,23 +66,65 @@ public class SeedDataController {
 	}
 
 	@GetMapping
-	public ResponseEntity<ApiResponse> getAllEntities() {
-		log.info("GET request received: Fetching all seeded graph entities with parent mapping.");
+	public ResponseEntity<ApiResponse> getAllEntities(
+	        @RequestParam(defaultValue = "20") int limit,
+	        @RequestParam(defaultValue = "0") int offset) {
 
-		List<NodeEntityResponse> allEntities = new ArrayList<>();
+	    log.info("GET request received: limit={}, offset={}", limit, offset);
 
-		allEntities.addAll(supplierService.findAllWithParents());
-		allEntities.addAll(rawMaterialService.findAllWithParents());
-		allEntities.addAll(componentService.findAllWithParents());
-		allEntities.addAll(subAssemblyService.findAllWithParents());
-		allEntities.addAll(productService.findAllWithParents());
+	    int effectiveLimit = (limit > 20 || limit <= 0) ? 20 : limit;
+	    int effectiveOffset = Math.max(offset, 0);
 
-		log.info("Successfully fetched {} total graph entities with parent relationships.", allEntities.size());
+	    // Track total entities to collect and remaining services to query
+	    int remainingLimit = effectiveLimit;
+	    int remainingServices = 5;
 
-		ApiResponse response = ApiResponse.builder().message("Seeded entities retrieved successfully.")
-				.code(HttpStatus.OK.value()).success(true).data(allEntities).build();
+	    List<NodeEntityResponse> allEntities = new ArrayList<>();
 
-		return ResponseEntity.ok(response);
+	    // 1. Supplier
+	    int quotaSupplier = (int) Math.ceil((double) remainingLimit / remainingServices);
+	    List<NodeEntityResponse> suppliers = supplierService.findAllWithParents(quotaSupplier, effectiveOffset);
+	    allEntities.addAll(suppliers);
+	    remainingLimit -= suppliers.size();
+	    remainingServices--;
+
+	    // 2. Raw Material
+	    int quotaRaw = (int) Math.ceil((double) remainingLimit / remainingServices);
+	    List<NodeEntityResponse> rawMaterials = rawMaterialService.findAllWithParents(quotaRaw, effectiveOffset);
+	    allEntities.addAll(rawMaterials);
+	    remainingLimit -= rawMaterials.size();
+	    remainingServices--;
+
+	    // 3. Component
+	    int quotaComp = (int) Math.ceil((double) remainingLimit / remainingServices);
+	    List<NodeEntityResponse> components = componentService.findAllWithParents(quotaComp, effectiveOffset);
+	    allEntities.addAll(components);
+	    remainingLimit -= components.size();
+	    remainingServices--;
+
+	    // 4. SubAssembly
+	    int quotaSub = (int) Math.ceil((double) remainingLimit / remainingServices);
+	    List<NodeEntityResponse> subAssemblies = subAssemblyService.findAllWithParents(quotaSub, effectiveOffset);
+	    allEntities.addAll(subAssemblies);
+	    remainingLimit -= subAssemblies.size();
+	    remainingServices--;
+
+	    // 5. Product (takes whatever capacity is left)
+	    if (remainingLimit > 0) {
+	        List<NodeEntityResponse> products = productService.findAllWithParents(remainingLimit, effectiveOffset);
+	        allEntities.addAll(products);
+	    }
+
+	    log.info("Successfully fetched {} total entities out of target limit {}.", allEntities.size(), effectiveLimit);
+
+	    ApiResponse response = ApiResponse.builder()
+	            .message("Seeded entities retrieved successfully.")
+	            .code(HttpStatus.OK.value())
+	            .success(true)
+	            .data(allEntities)
+	            .build();
+
+	    return ResponseEntity.ok(response);
 	}
 
 	@GetMapping("/search")

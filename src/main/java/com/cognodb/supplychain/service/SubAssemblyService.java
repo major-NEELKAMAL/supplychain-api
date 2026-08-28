@@ -62,8 +62,8 @@ public class SubAssemblyService {
 		return subAssemblyRepository.findAllByNames(cleanNames);
 	}
 
-	public List<NodeEntityResponse> findAllWithParents() {
-		return subAssemblyRepository.findAllSubAssembliesWithParents().stream().<NodeEntityResponse>map(sa -> {
+	public List<NodeEntityResponse> findAllWithParents(int limit, int offset) {
+		return subAssemblyRepository.findAllSubAssembliesWithParents(limit, offset).stream().<NodeEntityResponse>map(sa -> {
 			List<ParentNodeDto> parents = (sa.getComponents() == null) ? List.of()
 					: sa.getComponents().stream().map(c -> ParentNodeDto.builder().parentId(c.getId())
 							.parentName(c.getName()).parentEdge(ParentEdge.ALREADY_LINKED.name()).build())

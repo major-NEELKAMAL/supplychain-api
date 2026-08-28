@@ -23,7 +23,7 @@ public interface ProductRepository extends Repository<ProductNode, String> {
 
 	@Query("""
 			MATCH (p:Product)
-			WHERE toLower(p.name) IN $names			
+			WHERE toLower(p.name) IN $names
 			RETURN p
 			""")
 	List<ProductNode> findAllByNames(@Param("names") List<String> names);
@@ -37,11 +37,11 @@ public interface ProductRepository extends Repository<ProductNode, String> {
 	List<ProductNode> findProductsByNameContaining(@Param("keyword") String keyword);
 
 	@Query("""
-		    MATCH (p:Product {id: $id})
-		    OPTIONAL MATCH (sa:SubAssembly)-[r:BUILDS]->(p)
-		    RETURN p, collect(sa) AS subAssemblies, collect(r) AS builds
-		    """)
-		Optional<ProductNode> findProductById(@Param("id") String id);
+			MATCH (p:Product {id: $id})
+			OPTIONAL MATCH (sa:SubAssembly)-[r:BUILDS]->(p)
+			RETURN p, collect(sa) AS subAssemblies, collect(r) AS builds
+			""")
+	Optional<ProductNode> findProductById(@Param("id") String id);
 
 	@Query("""
 			MATCH (p:Product)
@@ -143,71 +143,68 @@ public interface ProductRepository extends Repository<ProductNode, String> {
 	List<ProductNode> createAll(@Param("products") List<Map<String, Object>> products);
 
 	@Query("""
-		    MATCH (prod:Product {id: $product.id})
+			MATCH (prod:Product {id: $product.id})
 
-		    SET prod.name = $product.name,
-		        prod.category = $product.category,
-		        prod.updatedAt = localdatetime()
+			SET prod.name = $product.name,
+			    prod.category = $product.category,
+			    prod.updatedAt = localdatetime()
 
-		    WITH prod, coalesce($product.parentIds, []) AS desiredParentIds
+			WITH prod, coalesce($product.parentIds, []) AS desiredParentIds
 
-		    // Delete relationships whose parent is not in the desired set
-		    OPTIONAL MATCH (oldSa:SubAssembly)-[oldRel:BUILDS]->(prod)
-		    WHERE NOT oldSa.id IN desiredParentIds
-		    DELETE oldRel
+			// Delete relationships whose parent is not in the desired set
+			OPTIONAL MATCH (oldSa:SubAssembly)-[oldRel:BUILDS]->(prod)
+			WHERE NOT oldSa.id IN desiredParentIds
+			DELETE oldRel
 
-		    WITH DISTINCT prod, desiredParentIds
+			WITH DISTINCT prod, desiredParentIds
 
-		    // Find existing SubAssembly nodes only
-		    OPTIONAL MATCH (newSa:SubAssembly)
-		    WHERE newSa.id IN desiredParentIds
+			// Find existing SubAssembly nodes only
+			OPTIONAL MATCH (newSa:SubAssembly)
+			WHERE newSa.id IN desiredParentIds
 
-		    WITH prod, collect(DISTINCT newSa) AS desiredParents
+			WITH prod, collect(DISTINCT newSa) AS desiredParents
 
-		    // Preserve existing relationships and create missing relationships
-		    FOREACH (parent IN desiredParents |
-		        MERGE (parent)-[:BUILDS]->(prod)
-		    )
+			// Preserve existing relationships and create missing relationships
+			FOREACH (parent IN desiredParents |
+			    MERGE (parent)-[:BUILDS]->(prod)
+			)
 
-		    RETURN prod
-		    """)
-		ProductNode update(@Param("product") Map<String, Object> product);
-
+			RETURN prod
+			""")
+	ProductNode update(@Param("product") Map<String, Object> product);
 
 	@Query("""
-		    UNWIND $products AS p
+			UNWIND $products AS p
 
-		    MATCH (prod:Product {id: p.id})
+			MATCH (prod:Product {id: p.id})
 
-		    SET prod.name = p.name,
-		        prod.category = p.category,
-		        prod.updatedAt = localdatetime()
+			SET prod.name = p.name,
+			    prod.category = p.category,
+			    prod.updatedAt = localdatetime()
 
-		    WITH prod, coalesce(p.parentIds, []) AS desiredParentIds
+			WITH prod, coalesce(p.parentIds, []) AS desiredParentIds
 
-		    // Delete existing BUILDS relationships not in the desired set
-		    OPTIONAL MATCH (oldSa:SubAssembly)-[oldRel:BUILDS]->(prod)
-		    WHERE NOT oldSa.id IN desiredParentIds
-		    DELETE oldRel
+			// Delete existing BUILDS relationships not in the desired set
+			OPTIONAL MATCH (oldSa:SubAssembly)-[oldRel:BUILDS]->(prod)
+			WHERE NOT oldSa.id IN desiredParentIds
+			DELETE oldRel
 
-		    WITH DISTINCT prod, desiredParentIds
+			WITH DISTINCT prod, desiredParentIds
 
-		    // Keep the product row even when desiredParentIds is empty
-		    OPTIONAL MATCH (newSa:SubAssembly)
-		    WHERE newSa.id IN desiredParentIds
+			// Keep the product row even when desiredParentIds is empty
+			OPTIONAL MATCH (newSa:SubAssembly)
+			WHERE newSa.id IN desiredParentIds
 
-		    WITH prod, collect(DISTINCT newSa) AS desiredParents
+			WITH prod, collect(DISTINCT newSa) AS desiredParents
 
-		    // Existing relationship is preserved; missing relationship is created
-		    FOREACH (parent IN desiredParents |
-		        MERGE (parent)-[:BUILDS]->(prod)
-		    )
+			// Existing relationship is preserved; missing relationship is created
+			FOREACH (parent IN desiredParents |
+			    MERGE (parent)-[:BUILDS]->(prod)
+			)
 
-		    RETURN DISTINCT prod
-		    """)
-		List<ProductNode> updateAll(
-		    @Param("products") List<Map<String, Object>> products
-		);
+			RETURN DISTINCT prod
+			""")
+	List<ProductNode> updateAll(@Param("products") List<Map<String, Object>> products);
 
 	@Query("""
 			MATCH (p:Product {id: $id})
@@ -224,10 +221,12 @@ public interface ProductRepository extends Repository<ProductNode, String> {
 	long deleteAllProducts();
 
 	@Query("""
-			MATCH (p:Product)
-			OPTIONAL MATCH (p)<-[r:BUILDS]-(sa:SubAssembly)
-			RETURN p, collect(r) AS rels, collect(sa) AS subAssemblies
-			ORDER BY p.name
-			""")
-	List<ProductNode> findAllProductsWithParents();
+				MATCH (p:Product)
+				OPTIONAL MATCH (p)<-[r:BUILDS]-(sa:SubAssembly)
+				RETURN p, collect(r) AS rels, collect(sa) AS subAssemblies
+				ORDER BY p.name
+				SKIP $offset
+			LIMIT $limit
+				""")
+	List<ProductNode> findAllProductsWithParents(@Param("limit") int limit, @Param("offset") int offset);
 }

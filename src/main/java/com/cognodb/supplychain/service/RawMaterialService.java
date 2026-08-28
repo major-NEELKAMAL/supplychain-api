@@ -61,8 +61,8 @@ public class RawMaterialService {
 		return rawMaterialRepository.findAllByNames(cleanNames);
 	}
 
-	public List<NodeEntityResponse> findAllWithParents() {
-		return rawMaterialRepository.findAllRawMaterialsWithParents().stream().<NodeEntityResponse>map(rm -> {
+	public List<NodeEntityResponse> findAllWithParents(int limit, int offset) {
+		return rawMaterialRepository.findAllRawMaterialsWithParents(limit, offset).stream().<NodeEntityResponse>map(rm -> {
 			List<ParentNodeDto> parents = (rm.getSuppliers() == null) ? List.of()
 					: rm.getSuppliers().stream().map(s -> ParentNodeDto.builder().parentId(s.getId())
 							.parentName(s.getName()).parentEdge(ParentEdge.ALREADY_LINKED.name()).build())

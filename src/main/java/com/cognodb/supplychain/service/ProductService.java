@@ -68,8 +68,8 @@ public class ProductService {
 		return productRepository.findAllByNames(cleanNames);
 	}
 
-	public List<NodeEntityResponse> findAllWithParents() {
-		return productRepository.findAllProductsWithParents().stream().<NodeEntityResponse>map(p -> {
+	public List<NodeEntityResponse> findAllWithParents(int limit, int offset) {
+		return productRepository.findAllProductsWithParents(limit, offset).stream().<NodeEntityResponse>map(p -> {
 			List<ParentNodeDto> parents = (p.getSubAssemblies() == null) ? List.of()
 					: p.getSubAssemblies().stream().map(sa -> ParentNodeDto.builder().parentId(sa.getId())
 							.parentName(sa.getName()).parentEdge(ParentEdge.ALREADY_LINKED.name()).build())

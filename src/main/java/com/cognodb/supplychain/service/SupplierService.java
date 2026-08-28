@@ -51,8 +51,8 @@ public class SupplierService {
 		return supplierRepository.findAllByNames(cleanNames);
 	}
 
-	public List<NodeEntityResponse> findAllWithParents() {
-		return supplierRepository.findAllSuppliersWithParents().stream()
+	public List<NodeEntityResponse> findAllWithParents(int limit, int offset) {
+		return supplierRepository.findAllSuppliersWithParents(limit, offset).stream()
 				.<NodeEntityResponse>map(
 						s -> NodeEntityResponse.builder().id(s.getId()).name(s.getName()).category(s.getCategory())
 								.entityType(EntityType.SUPPLIER.name()).parentNodeDto(List.of()).build())

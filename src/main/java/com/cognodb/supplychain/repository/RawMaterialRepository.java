@@ -22,7 +22,7 @@ public interface RawMaterialRepository extends Repository<RawMaterialNode, Strin
 
 	@Query("""
 			MATCH (r:RawMaterial)
-			WHERE toLower(r.name) IN $names			
+			WHERE toLower(r.name) IN $names
 			RETURN r
 			""")
 	List<RawMaterialNode> findAllByNames(@Param("names") List<String> names);
@@ -88,72 +88,68 @@ public interface RawMaterialRepository extends Repository<RawMaterialNode, Strin
 	List<RawMaterialNode> createAll(@Param("materials") List<Map<String, Object>> materials);
 
 	@Query("""
-		    MATCH (material:RawMaterial {id: $material.id})
+			  MATCH (material:RawMaterial {id: $material.id})
 
-		   SET material.name = $material.name,
-    material.category = $material.category,
-    material.updatedAt = localdatetime()
-		    WITH material, coalesce($material.parentIds, []) AS desiredParentIds
+			 SET material.name = $material.name,
+			material.category = $material.category,
+			material.updatedAt = localdatetime()
+			  WITH material, coalesce($material.parentIds, []) AS desiredParentIds
 
-		    // Delete obsolete Supplier -> RawMaterial relationships
-		    OPTIONAL MATCH (oldSupplier:Supplier)-[oldRel:SUPPLIES]->(material)
-		    WHERE NOT oldSupplier.id IN desiredParentIds
-		    DELETE oldRel
+			  // Delete obsolete Supplier -> RawMaterial relationships
+			  OPTIONAL MATCH (oldSupplier:Supplier)-[oldRel:SUPPLIES]->(material)
+			  WHERE NOT oldSupplier.id IN desiredParentIds
+			  DELETE oldRel
 
-		    WITH DISTINCT material, desiredParentIds
+			  WITH DISTINCT material, desiredParentIds
 
-		    // Find only existing Suppliers
-		    OPTIONAL MATCH (newSupplier:Supplier)
-		    WHERE newSupplier.id IN desiredParentIds
+			  // Find only existing Suppliers
+			  OPTIONAL MATCH (newSupplier:Supplier)
+			  WHERE newSupplier.id IN desiredParentIds
 
-		    WITH material, collect(DISTINCT newSupplier) AS desiredSuppliers
+			  WITH material, collect(DISTINCT newSupplier) AS desiredSuppliers
 
-		    // Preserve existing links and create missing links
-		    FOREACH (supplier IN desiredSuppliers |
-		        MERGE (supplier)-[:SUPPLIES]->(material)
-		    )
+			  // Preserve existing links and create missing links
+			  FOREACH (supplier IN desiredSuppliers |
+			      MERGE (supplier)-[:SUPPLIES]->(material)
+			  )
 
-		    RETURN material
-		    """)
-		RawMaterialNode update(
-		    @Param("material") Map<String, Object> material
-		);
-	
+			  RETURN material
+			  """)
+	RawMaterialNode update(@Param("material") Map<String, Object> material);
+
 	@Query("""
-		    UNWIND $materials AS rm
+			  UNWIND $materials AS rm
 
-		    MATCH (material:RawMaterial {id: rm.id})
+			  MATCH (material:RawMaterial {id: rm.id})
 
-		    SET material.name = $material.name,
-    material.category = $material.category,
-    material.updatedAt = localdatetime()
+			  SET material.name = $material.name,
+			material.category = $material.category,
+			material.updatedAt = localdatetime()
 
-		    WITH material, coalesce(rm.parentIds, []) AS desiredParentIds
+			  WITH material, coalesce(rm.parentIds, []) AS desiredParentIds
 
-		    // Delete obsolete Supplier -> RawMaterial relationships
-		    OPTIONAL MATCH (oldSupplier:Supplier)-[oldRel:SUPPLIES]->(material)
-		    WHERE NOT oldSupplier.id IN desiredParentIds
-		    DELETE oldRel
+			  // Delete obsolete Supplier -> RawMaterial relationships
+			  OPTIONAL MATCH (oldSupplier:Supplier)-[oldRel:SUPPLIES]->(material)
+			  WHERE NOT oldSupplier.id IN desiredParentIds
+			  DELETE oldRel
 
-		    WITH DISTINCT material, desiredParentIds
+			  WITH DISTINCT material, desiredParentIds
 
-		    // Find only existing Suppliers
-		    OPTIONAL MATCH (newSupplier:Supplier)
-		    WHERE newSupplier.id IN desiredParentIds
+			  // Find only existing Suppliers
+			  OPTIONAL MATCH (newSupplier:Supplier)
+			  WHERE newSupplier.id IN desiredParentIds
 
-		    WITH material, collect(DISTINCT newSupplier) AS desiredSuppliers
+			  WITH material, collect(DISTINCT newSupplier) AS desiredSuppliers
 
-		    // Preserve existing links and create missing links
-		    FOREACH (supplier IN desiredSuppliers |
-		        MERGE (supplier)-[:SUPPLIES]->(material)
-		    )
+			  // Preserve existing links and create missing links
+			  FOREACH (supplier IN desiredSuppliers |
+			      MERGE (supplier)-[:SUPPLIES]->(material)
+			  )
 
-		    RETURN DISTINCT material
-		    """)
-		List<RawMaterialNode> updateAll(
-		    @Param("materials") List<Map<String, Object>> materials
-		);
-	
+			  RETURN DISTINCT material
+			  """)
+	List<RawMaterialNode> updateAll(@Param("materials") List<Map<String, Object>> materials);
+
 	@Query("""
 			MATCH (r:RawMaterial {id: $id})
 			OPTIONAL MATCH (r)-[*1..10]->(child)
@@ -180,10 +176,12 @@ public interface RawMaterialRepository extends Repository<RawMaterialNode, Strin
 	long deleteAllRawMaterials();
 
 	@Query("""
-			MATCH (rm:RawMaterial)
-			OPTIONAL MATCH (rm)<-[r:SUPPLIES]-(s:Supplier)
-			RETURN rm, collect(r) AS rels, collect(s) AS suppliers
-			ORDER BY rm.name
-			""")
-	List<RawMaterialNode> findAllRawMaterialsWithParents();
+				MATCH (rm:RawMaterial)
+				OPTIONAL MATCH (rm)<-[r:SUPPLIES]-(s:Supplier)
+				RETURN rm, collect(r) AS rels, collect(s) AS suppliers
+				ORDER BY rm.name
+				SKIP $offset
+			LIMIT $limit
+				""")
+	List<RawMaterialNode> findAllRawMaterialsWithParents(@Param("limit") int limit, @Param("offset") int offset);
 }

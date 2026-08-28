@@ -22,7 +22,7 @@ public interface ComponentRepository extends Repository<ComponentNode, String> {
 
 	@Query("""
 			MATCH (c:Component)
-			WHERE toLower(c.name) IN $names			
+			WHERE toLower(c.name) IN $names
 			RETURN c
 			""")
 	List<ComponentNode> findAllByNames(@Param("names") List<String> names);
@@ -88,73 +88,68 @@ public interface ComponentRepository extends Repository<ComponentNode, String> {
 	List<ComponentNode> createAll(@Param("components") List<Map<String, Object>> components);
 
 	@Query("""
-		    MATCH (component:Component {id: $component.id})
+			 MATCH (component:Component {id: $component.id})
 
-		   SET component.name = $component.name,
-        component.category = $component.category,
-        component.updatedAt = localdatetime()
+			SET component.name = $component.name,
+			   component.category = $component.category,
+			   component.updatedAt = localdatetime()
 
-		    WITH component, coalesce($component.parentIds, []) AS desiredParentIds
+			 WITH component, coalesce($component.parentIds, []) AS desiredParentIds
 
-		    // Delete obsolete RawMaterial -> Component relationships
-		    OPTIONAL MATCH (oldMaterial:RawMaterial)-[oldRel:YIELDS]->(component)
-		    WHERE NOT oldMaterial.id IN desiredParentIds
-		    DELETE oldRel
+			 // Delete obsolete RawMaterial -> Component relationships
+			 OPTIONAL MATCH (oldMaterial:RawMaterial)-[oldRel:YIELDS]->(component)
+			 WHERE NOT oldMaterial.id IN desiredParentIds
+			 DELETE oldRel
 
-		    WITH DISTINCT component, desiredParentIds
+			 WITH DISTINCT component, desiredParentIds
 
-		    // Find only existing RawMaterials
-		    OPTIONAL MATCH (newMaterial:RawMaterial)
-		    WHERE newMaterial.id IN desiredParentIds
+			 // Find only existing RawMaterials
+			 OPTIONAL MATCH (newMaterial:RawMaterial)
+			 WHERE newMaterial.id IN desiredParentIds
 
-		    WITH component, collect(DISTINCT newMaterial) AS desiredMaterials
+			 WITH component, collect(DISTINCT newMaterial) AS desiredMaterials
 
-		    // Preserve existing links and create missing links
-		    FOREACH (material IN desiredMaterials |
-		        MERGE (material)-[:YIELDS]->(component)
-		    )
+			 // Preserve existing links and create missing links
+			 FOREACH (material IN desiredMaterials |
+			     MERGE (material)-[:YIELDS]->(component)
+			 )
 
-		    RETURN component
-		    """)
-		ComponentNode update(
-		    @Param("component") Map<String, Object> component
-		);
-	
+			 RETURN component
+			 """)
+	ComponentNode update(@Param("component") Map<String, Object> component);
+
 	@Query("""
-		    UNWIND $components AS c
+			UNWIND $components AS c
 
-		    MATCH (component:Component {id: c.id})
+			MATCH (component:Component {id: c.id})
 
-		    SET component.name = $component.name,
-        component.category = $component.category,
-        component.updatedAt = localdatetime()
+			SET component.name = $component.name,
+			  component.category = $component.category,
+			  component.updatedAt = localdatetime()
 
-		    WITH component, coalesce(c.parentIds, []) AS desiredParentIds
+			WITH component, coalesce(c.parentIds, []) AS desiredParentIds
 
-		    // Delete obsolete RawMaterial -> Component relationships
-		    OPTIONAL MATCH (oldMaterial:RawMaterial)-[oldRel:YIELDS]->(component)
-		    WHERE NOT oldMaterial.id IN desiredParentIds
-		    DELETE oldRel
+			// Delete obsolete RawMaterial -> Component relationships
+			OPTIONAL MATCH (oldMaterial:RawMaterial)-[oldRel:YIELDS]->(component)
+			WHERE NOT oldMaterial.id IN desiredParentIds
+			DELETE oldRel
 
-		    WITH DISTINCT component, desiredParentIds
+			WITH DISTINCT component, desiredParentIds
 
-		    // Find only existing RawMaterials
-		    OPTIONAL MATCH (newMaterial:RawMaterial)
-		    WHERE newMaterial.id IN desiredParentIds
+			// Find only existing RawMaterials
+			OPTIONAL MATCH (newMaterial:RawMaterial)
+			WHERE newMaterial.id IN desiredParentIds
 
-		    WITH component, collect(DISTINCT newMaterial) AS desiredMaterials
+			WITH component, collect(DISTINCT newMaterial) AS desiredMaterials
 
-		    // Preserve existing links and create missing links
-		    FOREACH (material IN desiredMaterials |
-		        MERGE (material)-[:YIELDS]->(component)
-		    )
+			// Preserve existing links and create missing links
+			FOREACH (material IN desiredMaterials |
+			    MERGE (material)-[:YIELDS]->(component)
+			)
 
-		    RETURN DISTINCT component
-		    """)
-		List<ComponentNode> updateAll(
-		    @Param("components") List<Map<String, Object>> components
-		);
-	
+			RETURN DISTINCT component
+			""")
+	List<ComponentNode> updateAll(@Param("components") List<Map<String, Object>> components);
 
 	@Query("""
 			MATCH (c:Component {id: $id})
@@ -181,10 +176,12 @@ public interface ComponentRepository extends Repository<ComponentNode, String> {
 	long deleteAllComponents();
 
 	@Query("""
-			MATCH (c:Component)
-			OPTIONAL MATCH (c)<-[r:YIELDS]-(rm:RawMaterial)
-			RETURN c, collect(r) AS rels, collect(rm) AS rawMaterials
-			ORDER BY c.name
-			""")
-	List<ComponentNode> findAllComponentsWithParents();
+				MATCH (c:Component)
+				OPTIONAL MATCH (c)<-[r:YIELDS]-(rm:RawMaterial)
+				RETURN c, collect(r) AS rels, collect(rm) AS rawMaterials
+				ORDER BY c.name
+				SKIP $offset
+			LIMIT $limit
+				""")
+	List<ComponentNode> findAllComponentsWithParents(@Param("limit") int limit, @Param("offset") int offset);
 }

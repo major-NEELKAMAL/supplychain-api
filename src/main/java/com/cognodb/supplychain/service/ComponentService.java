@@ -61,8 +61,8 @@ public class ComponentService {
 		return componentRepository.findAllByNames(cleanNames);
 	}
 
-	public List<NodeEntityResponse> findAllWithParents() {
-		return componentRepository.findAllComponentsWithParents().stream().<NodeEntityResponse>map(c -> {
+	public List<NodeEntityResponse> findAllWithParents(int limit, int offset) {
+		return componentRepository.findAllComponentsWithParents(limit, offset).stream().<NodeEntityResponse>map(c -> {
 			List<ParentNodeDto> parents = (c.getRawMaterials() == null) ? List.of()
 					: c.getRawMaterials().stream().map(rm -> ParentNodeDto.builder().parentId(rm.getId())
 							.parentName(rm.getName()).parentEdge(ParentEdge.ALREADY_LINKED.name()).build())
