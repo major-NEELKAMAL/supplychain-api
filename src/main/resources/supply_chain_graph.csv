@@ -1,0 +1,29 @@
+id,entityType,name,category,parentId,parentName
+,SUPPLIER,Apex Mining Corp Pvt. Ltd.,Mining & Extraction,,
+,SUPPLIER,Lithium Dynamics Pvt. Ltd.,Chemical Refining,,
+,SUPPLIER,Silica Global Pvt. Ltd.,Semiconductor Materials,,
+,RAW_MATERIAL,Refined Aluminum Ingot,Metals,,Apex Mining Corp Pvt. Ltd.
+,RAW_MATERIAL,Battery Grade Lithium,Chemicals,,Lithium Dynamics Pvt. Ltd.
+,RAW_MATERIAL,High-Purity Silicon Wafer,Semiconductors,,Silica Global Pvt. Ltd.
+,RAW_MATERIAL,Grade 5 Titanium Sheet,Metals,,Apex Mining Corp Pvt. Ltd.
+,RAW_MATERIAL,Industrial Polycarbonate,Plastics,,Lithium Dynamics Pvt. Ltd.
+,COMPONENT,Aluminium Chassis Frame,Structural,,Refined Aluminum Ingot
+,COMPONENT,Li-Ion Energy Cell,Power,,Battery Grade Lithium
+,COMPONENT,Microprocessor Die,Electronics,,High-Purity Silicon Wafer
+,COMPONENT,Titanium Fastener Array,Hardware,,Grade 5 Titanium Sheet
+,COMPONENT,Optics Housing Casing,Enclosures,,Industrial Polycarbonate
+,SUB_ASSEMBLY,Unibody Structural Shell,Body Assembly,,Aluminium Chassis Frame
+,SUB_ASSEMBLY,High-Voltage Battery Pack,Power Subsystem,,Li-Ion Energy Cell
+,SUB_ASSEMBLY,Main Logic Board,Compute Module,,Microprocessor Die
+,SUB_ASSEMBLY,Precision Mount Assembly,Hardware Assembly,,Titanium Fastener Array
+,SUB_ASSEMBLY,Camera Sensor Module,Optics Assembly,,Optics Housing Casing
+,PRODUCT,Pro Laptop 15-Inch,Finished Goods,,Unibody Structural Shell
+,PRODUCT,Ultra Lightweight Tablet,Finished Goods,,Unibody Structural Shell
+,PRODUCT,EV Battery Station,Finished Goods,,High-Voltage Battery Pack
+,PRODUCT,Home Energy Storage Wall,Finished Goods,,High-Voltage Battery Pack
+,PRODUCT,Enterprise Server Blade,Finished Goods,,Main Logic Board
+,PRODUCT,AI Workstation Tower,Finished Goods,,Main Logic Board
+,PRODUCT,Industrial Drone Frame,Finished Goods,,Precision Mount Assembly
+,PRODUCT,Robotic Arm Chassis,Finished Goods,,Precision Mount Assembly
+,PRODUCT,Smart Security Camera,Finished Goods,,Camera Sensor Module
+,PRODUCT,Autonomous Vehicle LiDAR Unit,Finished Goods,,Camera Sensor Module

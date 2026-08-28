@@ -1,4 +1,4 @@
-package com.wexa.supplychain.config;
+package com.cognodb.supplychain.config;
 
 import org.jasypt.encryption.StringEncryptor;
 import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
@@ -17,19 +17,17 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @Configuration
 public class CommonConfig {
 	private static final Logger logger = LoggerFactory.getLogger(CommonConfig.class);
-	
+
 	@Bean
 	@Primary
 	public ObjectMapper objectMapper() {
 		ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule())
 				.enable(SerializationFeature.INDENT_OUTPUT).disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 		objectMapper.disable(SerializationFeature.WRAP_ROOT_VALUE);
-		// objectMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
 		objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 		logger.info("Creating ObjectMapper bean.");
 		return objectMapper;
 	}
-
 
 	@Bean(name = "jasyptStringEncryptor")
 	public StringEncryptor stringEncryptor(@Value("${jasypt.encryptor.password}") String masterPassword) {
@@ -43,6 +41,8 @@ public class CommonConfig {
 		config.setIvGeneratorClassName("org.jasypt.iv.RandomIvGenerator");
 		config.setStringOutputType("base64");
 		encryptor.setConfig(config);
+		logger.info("Creating jasyptStringEncryptor bean.");
 		return encryptor;
 	}
+
 }

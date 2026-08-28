@@ -1,13 +1,13 @@
-package com.wexa.supplychain;
+package com.cognodb.supplychain;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class CognodbApplication {
+public class CognodbSupplyChainApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(CognodbApplication.class, args);
+		SpringApplication.run(CognodbSupplyChainApplication.class, args);
 	}
 
 }
