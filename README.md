@@ -2,9 +2,9 @@
 
 Spring Boot REST API service powering the **Supply Chain Blast-Radius Tracker**. Built with Java 21, Spring Boot, and Spring Data Neo4j to interact with **CognoDB Cloud** over the Bolt protocol.
 
-- **Live API Endpoint:** `https://supplychain-api-3ntq.onrender.com/api/v1/supply-chain/healthcheck`
-- **Frontend Repository:** `https://github.com/major-NEELKAMAL/supply-chain-frontend`
-- **Frontend Live App:** `https://supply-chain-frontend-74mv.onrender.com/`
+- **Live API Endpoint:** https://supplychain-api-3ntq.onrender.com/api/v1/supply-chain/healthcheck
+- **Frontend Live Application:** https://supply-chain-frontend-74mv.onrender.com/
+- **Frontend Repository:** https://github.com/major-NEELKAMAL/supply-chain-frontend
 
 ---
 
