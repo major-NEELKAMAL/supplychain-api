@@ -55,14 +55,3 @@ for current_type, parent_type, count, prefix in levels:
 df = pd.DataFrame(data)
 df.to_csv("supply_chain_graph.csv", index=False)
 print(f"Generated {len(df)} rows with strict top-down parent linkage.")
-
-(:Supplier) -[:SUPPLIES]-> (:RawMaterial) -[:YIELDS]-> (:Component) -[:ASSEMBLED_INTO]-> (:SubAssembly) -[:BUILDS]-> (:Product)
-
-* **Live Frontend Demo:** https://supply-chain-frontend-74mv.onrender.com
-
-* **Frontend Repository:** https://github.com/major-NEELKAMAL/supply-chain-frontend
-
-* **Backend Repository:** https://github.com/major-NEELKAMAL/supplychain-api
-
-* **Video Walkthrough:**  https://www.loom.com/share/d6b0441314d9472c9d703b410b201dae
-
