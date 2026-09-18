@@ -2,8 +2,8 @@
 
 Spring Boot REST API service powering the **Supply Chain Blast-Radius Tracker**. Built with Java 21, Spring Boot, and Spring Data Neo4j to interact with **CognoDB Cloud** over the Bolt protocol.
 
-- **Live API Endpoint:** https://supplychain-api-3ntq.onrender.com/api/v1/supply-chain/healthcheck
-- **Frontend Live Application:** https://supply-chain-frontend-74mv.onrender.com/
+- **Live API Endpoint:** https://api-supply-chain.royawl.com/api/v1/supply-chain/healthcheck
+- **Frontend Live Application:** https://ui-supply-chain.royawl.com/
 - **Frontend Repository:** https://github.com/major-NEELKAMAL/supply-chain-frontend
 
 ---
@@ -80,7 +80,7 @@ Executed via findImpactByComponent (2 hops) and findImpactBySubAssembly (1 hop) 
 | **GET** | `/api/v1/supply-chain/impact/{id}?type={entityType}` | Performs tier-aware Cypher traversal returning downstream impact paths & hop depth. |
 
 ---
-https://supplychain-api-3ntq.onrender.com/api/v1/seed/default?userId=user_xqxcee3
+
 ## Local Development Setup
 
 ### Prerequisites
@@ -96,9 +96,36 @@ java -Djasypt.encryptor.password=cognodb -jar target/*.jar
 
 Service runs locally on http://localhost:8081.
 
-### Extra 
+### Extra
 To generate Supply chain graph default data csv file (present in resource directory) use cognodb.py file provided in root directory.
 
 python3 cognodb.py
 
 Place the generated file in resource directory.
+
+---
+
+## Production Deployment (Docker, ARM64)
+
+The service is deployed as a Docker container on an ARM64 (aarch64) host, sitting behind nginx as a reverse proxy with TLS termination.
+
+### Build & Push (multi-arch host required for cross-building)
+
+docker buildx build --platform linux/arm64 \
+  -t <your-dockerhub-username>/supplychain-api:latest \
+  --push .
+
+### Run
+
+docker run -d --name supplychain-api --restart unless-stopped \
+  -p 127.0.0.1:8081:8081 \
+  -e JASYPT_PASSWORD='<your-real-value>' \
+  -e JAVA_OPTS='-Xmx400m -Xms128m' \
+  --memory=500m \
+  <your-dockerhub-username>/supplychain-api:latest
+
+`JAVA_OPTS` caps the JVM heap; `--memory` is the Docker/cgroup hard limit on the whole container. Keep the Docker limit comfortably above the JVM heap cap to leave room for thread stacks, metaspace, and GC overhead.
+
+### nginx Reverse Proxy
+
+The container binds to `127.0.0.1:8081` only (not exposed externally); nginx proxies `https://api-supply-chain.royawl.com` to it and handles HTTPS via a wildcard certificate for `*.royawl.com`.

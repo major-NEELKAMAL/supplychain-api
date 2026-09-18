@@ -9,4 +9,4 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8081
 
-ENTRYPOINT ["sh", "-c", "java -Djasypt.encryptor.password=${JASYPT_PASSWORD} -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -Djasypt.encryptor.password=${JASYPT_PASSWORD} -jar app.jar"]
